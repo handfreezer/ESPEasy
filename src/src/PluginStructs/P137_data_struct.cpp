@@ -119,7 +119,7 @@ const __FlashStringHelper* toString(const P137_valueOptions_e value,
     case P137_valueOptions_e::DCDC2: return displayString ? F("DCDC2 Voltage") : F("dcdc2voltage");
     case P137_valueOptions_e::DCDC3: return displayString ? F("DCDC3 Voltage") : F("dcdc3voltage");
   }
-  return F("*Undefined*");
+  return F("Undefined");
 }
 
 // **************************************************************************/
@@ -133,7 +133,7 @@ const __FlashStringHelper* toString(const P137_GPIOBootState_e value) {
     case P137_GPIOBootState_e::Input: return F("Input");
     case P137_GPIOBootState_e::PWM: return F("PWM");
   }
-  return F("*Undefined*");
+  return F("Undefined");
 }
 
 // **************************************************************************/
@@ -148,7 +148,7 @@ const __FlashStringHelper* toString(const P137_PredefinedDevices_e device) {
     case P137_PredefinedDevices_e::M5Stack_StickCPlus: return F("M5Stack StickC Plus");
     case P137_PredefinedDevices_e::UserDefined: return F("User defined");
   }
-  return F("*Undefined*");
+  return F("Undefined");
 }
 
 // **************************************************************************/
