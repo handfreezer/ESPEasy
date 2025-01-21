@@ -9,6 +9,7 @@
 
 /**
  * Changelog:
+ * 2025-01-21 tonhuisman: Bugfix: commands axp,ldo2,x to axp,dcdc3,x weren't working as intended
  * 2025-01-18 tonhuisman: Add predefined config settings for M5Stack StickC Plus units
  * 2022-12-27 tonhuisman: Add predefined config settings for LilyGO T-Beam LoRa units
  * 2022-12-07 tonhuisman: Re-order device configuration to use PLUGIN_WEBFORM_LOAD_OUTPUT_SELECTOR
