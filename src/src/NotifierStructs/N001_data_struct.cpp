@@ -33,7 +33,7 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
 
   BearSSL::WiFiClientSecure_light secureClient(4096, 4096);
 
-  if (notificationsettings.Port != 25) { // Port 25 is a standard WiFiClient, all else is a secure client...
+  if ((notificationsettings.Port != 25) && (notificationsettings.Port != 2525)) { // Port 25 or 2525 is a standard WiFiClient, all else is a secure client...
     secureClient.setUtcTime_fcn(getUnixTime);
     secureClient.setCfgTime_fcn(get_build_unixtime);
     secureClient.setTrustAnchor(Tasmota_TA, Tasmota_TA_size);
