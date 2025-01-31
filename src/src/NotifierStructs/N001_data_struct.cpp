@@ -25,30 +25,38 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
   bool myStatus = false;
   bool failFlag = false;
 
+  WiFiClient *client = nullptr;
+
 # if FEATURE_EMAIL_TLS
 
   // values are based on the NPLUGIN_001_PKT_SZ
-  BearSSL::WiFiClientSecure_light client(4096, 4096);
-  client.setUtcTime_fcn(getUnixTime);
-  client.setCfgTime_fcn(get_build_unixtime);
-  client.setTrustAnchor(Tasmota_TA, Tasmota_TA_size);
 
-  client.setInsecure();
+  BearSSL::WiFiClientSecure_light secureClient(4096, 4096);
+
+  if (notificationsettings.Port != 25) { // Port 25 is a standard WiFiClient, all else is a secure client...
+    secureClient.setUtcTime_fcn(getUnixTime);
+    secureClient.setCfgTime_fcn(get_build_unixtime);
+    secureClient.setTrustAnchor(Tasmota_TA, Tasmota_TA_size);
+    secureClient.setInsecure();
+    client = &secureClient;
+  } else {
+    client = new WiFiClient();
+  }
 
 # else // if FEATURE_EMAIL_TLS
 
   // Use WiFiClient class to create TCP connections
-  WiFiClient client;
+  client = new WiFiClient();
 # endif // if FEATURE_EMAIL_TLS
 
   # ifdef MUSTFIX_CLIENT_TIMEOUT_IN_SECONDS
 
   // See: https://github.com/espressif/arduino-esp32/pull/6676
-  client.setTimeout((notificationsettings.Timeout_ms + 500) / 1000); // in seconds!!!!
-  Client *pClient = &client;
+  client->setTimeout((notificationsettings.Timeout_ms + 500) / 1000); // in seconds!!!!
+  Client *pClient = client;
   pClient->setTimeout(notificationsettings.Timeout_ms);
   # else // ifdef MUSTFIX_CLIENT_TIMEOUT_IN_SECONDS
-  client.setTimeout(notificationsettings.Timeout_ms); // in msec as it should be!
+  client->setTimeout(notificationsettings.Timeout_ms); // in msec as it should be!
   # endif // ifdef MUSTFIX_CLIENT_TIMEOUT_IN_SECONDS
 
   # ifndef BUILD_NO_DEBUG
@@ -61,14 +69,14 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
   }
   # endif // ifndef BUILD_NO_DEBUG
 
-  if (!connectClient(client, notificationsettings.Server, notificationsettings.Port, notificationsettings.Timeout_ms)) {
+  if (!connectClient(*client, notificationsettings.Server, notificationsettings.Port, notificationsettings.Timeout_ms)) {
     if (loglevelActiveFor(LOG_LEVEL_ERROR)) {
 # if FEATURE_EMAIL_TLS
       addLog(LOG_LEVEL_ERROR, strformat(
                F("Email: Error connecting to %s:%u Error code: %d"),
                notificationsettings.Server,
                notificationsettings.Port,
-               client.getLastError()));
+               secureClient.getLastError()));
 
 # else // if FEATURE_EMAIL_TLS
       addLog(LOG_LEVEL_ERROR, strformat(
@@ -176,7 +184,7 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
     }
 
 # if FEATURE_EMAIL_TLS
-    client.setDomainName(notificationsettings.Domain);
+    secureClient.setDomainName(notificationsettings.Domain);
 
 # endif // if FEATURE_EMAIL_TLS
 
@@ -201,7 +209,7 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
                      // exit using break;
                      // However this is way too complex using both a failFlag and break
                      // and not even consistently.
-        if (!NPlugin_001_MTA(client, EMPTY_STRING, 220, clientTimeout)) {
+        if (!NPlugin_001_MTA(*client, EMPTY_STRING, 220, clientTimeout)) {
           # ifndef BUILD_NO_DEBUG
 
           if (loglevelActiveFor(LOG_LEVEL_DEBUG)) {
@@ -220,7 +228,7 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
           const String astr = strformat(F("EHLO %s"), notificationsettings.Domain);
 
           if (!NPlugin_001_MTA(
-                client,
+                *client,
                 astr,
                 250,
                 clientTimeout)) {
@@ -239,12 +247,12 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
 
           bool done = false;
 
-          while (client.available() && !done) {
+          while (client->available() && !done) {
             if (timeOutReached(timer)) {
               failFlag = true;
               break;
             }
-            done    = safeReadStringUntil(client, replyStr, '\n', NPLUGIN_001_PKT_SZ);
+            done    = safeReadStringUntil(*client, replyStr, '\n', NPLUGIN_001_PKT_SZ);
             catStr += replyStr;
           }
 
@@ -269,7 +277,7 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
           }
           # endif // ifndef BUILD_NO_DEBUG
 
-          if (!NPlugin_001_Auth(client, notificationsettings.User, notificationsettings.Pass, clientTimeout)) {
+          if (!NPlugin_001_Auth(*client, notificationsettings.User, notificationsettings.Pass, clientTimeout)) {
             # ifndef BUILD_NO_DEBUG
 
             addLog(LOG_LEVEL_DEBUG, F("Email: User/Pass Fail"));
@@ -286,7 +294,7 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
 
           const String astr = strformat(F("MAIL FROM:<%s>"), email_address.c_str());
 
-          if (!NPlugin_001_MTA(client, astr, 250, clientTimeout)) {
+          if (!NPlugin_001_MTA(*client, astr, 250, clientTimeout)) {
             # ifndef BUILD_NO_DEBUG
             addLog(LOG_LEVEL_DEBUG, F("Email: Addr Fail"));
             # endif // ifndef BUILD_NO_DEBUG
@@ -313,7 +321,7 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
               addLog(LOG_LEVEL_INFO, concat(F("Email: To "), emailTo));
             }
 
-            if (!NPlugin_001_MTA(client, strformat(F("RCPT TO:<%s>"), emailTo.c_str()), 250, clientTimeout))
+            if (!NPlugin_001_MTA(*client, strformat(F("RCPT TO:<%s>"), emailTo.c_str()), 250, clientTimeout))
             {
               break;
             }
@@ -323,14 +331,14 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
         }
 
         if (!failFlag) {
-          if (!NPlugin_001_MTA(client, F("DATA"), 354, clientTimeout)) {
+          if (!NPlugin_001_MTA(*client, F("DATA"), 354, clientTimeout)) {
             failFlag = true;
             break;
           }
         }
 
         if (!failFlag) {
-          if (!NPlugin_001_MTA(client, strformat(F("%s%s\r\n.\r\n"), mailheader.c_str(), body.c_str()), 250, clientTimeout)) {
+          if (!NPlugin_001_MTA(*client, strformat(F("%s%s\r\n.\r\n"), mailheader.c_str(), body.c_str()), 250, clientTimeout)) {
             failFlag = true;
             break;
           }
@@ -341,13 +349,13 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
           myStatus = true;
         }
 
-        NPlugin_001_MTA(client, F("QUIT"), 221, clientTimeout); // Sent successfully, close SMTP protocol, ignore failure
+        NPlugin_001_MTA(*client, F("QUIT"), 221, clientTimeout); // Sent successfully, close SMTP protocol, ignore failure
         break;
       }
     }
 
     //    client.PR_9453_FLUSH_TO_CLEAR();
-    client.stop();
+    client->stop();
 
     if (myStatus == true) {
       addLog(LOG_LEVEL_INFO, F("Email: Connection Closed Successfully"));
