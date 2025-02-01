@@ -41,13 +41,17 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
     secureClient.setInsecure();
     client = &secureClient;
   } else {
-    client = new WiFiClient();
+    client = new (std::nothrow) WiFiClient();
+
+    if (!client) { return false; }
   }
 
 # else // if FEATURE_EMAIL_TLS
 
   // Use WiFiClient class to create TCP connections
-  client = new WiFiClient();
+  client = new (std::nothrow) WiFiClient();
+
+  if (!client) { return false; }
 # endif // if FEATURE_EMAIL_TLS
 
   # ifdef MUSTFIX_CLIENT_TIMEOUT_IN_SECONDS
@@ -355,11 +359,7 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
       }
     }
 
-    //    client.PR_9453_FLUSH_TO_CLEAR();
-    client->stop();
-    delete client;
-
-    if (myStatus == true) {
+    if (myStatus) {
       addLog(LOG_LEVEL_INFO, F("Email: Connection Closed Successfully"));
     } else {
       if (loglevelActiveFor(LOG_LEVEL_ERROR)) {
@@ -367,6 +367,10 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
       }
     }
   }
+
+  client->stop();
+  delete client;
+
   return myStatus;
 }
 
