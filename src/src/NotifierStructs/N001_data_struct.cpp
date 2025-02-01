@@ -22,8 +22,9 @@
 
 bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, String& subject, String& body)
 {
-  bool myStatus = false;
-  bool failFlag = false;
+  bool myStatus     = false;
+  bool failFlag     = false;
+  bool deleteClient = true;
 
   WiFiClient *client = nullptr;
 
@@ -39,7 +40,8 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
     secureClient.setCfgTime_fcn(get_build_unixtime);
     secureClient.setTrustAnchor(Tasmota_TA, Tasmota_TA_size);
     secureClient.setInsecure();
-    client = &secureClient;
+    client       = &secureClient;
+    deleteClient = false;
   } else {
     client = new (std::nothrow) WiFiClient();
 
@@ -369,7 +371,8 @@ bool NPlugin_001_send(const NotificationSettingsStruct& notificationsettings, St
   }
 
   client->stop();
-  delete client;
+
+  if (deleteClient) { delete client; }
 
   return myStatus;
 }
