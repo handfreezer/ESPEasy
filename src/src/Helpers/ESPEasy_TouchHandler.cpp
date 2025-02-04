@@ -139,7 +139,7 @@ void ESPEasy_TouchHandler::loadTouchObjects(struct EventStruct *event) {
   #  endif // if TOUCH_FEATURE_SWIPE
   # endif // if TOUCH_FEATURE_EXTENDED_TOUCH
 
-  settingsArray[TOUCH_CALIBRATION_START].clear(); // Free a little memory
+  free_string(settingsArray[TOUCH_CALIBRATION_START]); // Free a little memory
 
   // Buffer some settings, mostly for readability, but also to be able to set from write command
   _flipped     = bitRead(Touch_Settings.flags, TOUCH_FLAGS_ROTATION_FLIPPED);
@@ -211,7 +211,7 @@ void ESPEasy_TouchHandler::loadTouchObjects(struct EventStruct *event) {
 
         t++;
 
-        settingsArray[i].clear(); // Free a little memory
+        free_string(settingsArray[i]); // Free a little memory
       }
     }
   }
