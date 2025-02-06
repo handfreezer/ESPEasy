@@ -8,8 +8,10 @@ tTouchObjects::tTouchObjects() :
   flags(0u),
   SurfaceAreas(0u),
   TouchTimers(0u),
+#ifdef ESP32
   top_left({0u, 0u}),
   width_height({0u, 0u}),
+#endif
   TouchStates(0u)
   # if TOUCH_FEATURE_EXTENDED_TOUCH
   , groupFlags           (0u)
