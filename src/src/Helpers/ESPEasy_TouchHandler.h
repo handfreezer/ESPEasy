@@ -232,6 +232,7 @@ struct tTouch_Point
 // For touch objects we store a name, 2 coordinates, flags and other options
 struct tTouchObjects
 {
+  tTouchObjects();
   uint32_t     flags        = 0u;
   uint32_t     SurfaceAreas = 0u;
   uint32_t     TouchTimers  = 0u;
