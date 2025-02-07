@@ -27,7 +27,7 @@ boolean Plugin_140(uint8_t function, struct EventStruct *event, String& string)
       auto& dev = Device[++deviceCount];
       dev.Number         = PLUGIN_ID_140;
       dev.Type           = DEVICE_TYPE_I2C;
-      dev.VType          = Sensor_VType::SENSOR_TYPE_STRING;
+      dev.VType          = Sensor_VType::SENSOR_TYPE_DUAL;
       dev.ValueCount     = 2;
       dev.SendDataOption = true;
 
