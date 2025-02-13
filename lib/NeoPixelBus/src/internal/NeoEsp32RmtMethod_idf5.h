@@ -476,10 +476,10 @@ public:
     {
         // AddLog(2,"..");
         // wait for not actively sending data
-        // this will time out at 10 seconds, an arbitrarily long period of time
+        // this will time out at 100 ms, an arbitrarily long period of time
         // and do nothing if this happens
 
-        if (ESP_OK == ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_tx_wait_all_done(_channel.RmtChannelNumber, 10000 / portTICK_PERIOD_MS)))
+        if (ESP_OK == ESP_ERROR_CHECK_WITHOUT_ABORT(rmt_tx_wait_all_done(_channel.RmtChannelNumber, 100 / portTICK_PERIOD_MS)))
         {
             // AddLog(2,"__ %u", _sizeData);
             // now start the RMT transmit with the editing buffer before we swap
@@ -530,10 +530,15 @@ private:
     void construct()
     {
         // AddLog(2,"RMT:construct");
-        _dataEditing = static_cast<uint8_t*>(malloc(_sizeData));
+//        _dataEditing = static_cast<uint8_t*>(malloc(_sizeData));
+        _dataEditing = static_cast<uint8_t*>(
+            heap_caps_malloc(_sizeData, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA)
+        );
         // data cleared later in Begin()
 
-        _dataSending = static_cast<uint8_t*>(malloc(_sizeData));
+        _dataSending = static_cast<uint8_t*>(
+            heap_caps_malloc(_sizeData, MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA)
+            );
         // no need to initialize it, it gets overwritten on every send
     }
 };
