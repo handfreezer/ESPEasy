@@ -217,13 +217,11 @@ fs::File tryOpenFile(const String& fname, const String& mode, FileDestination_e 
 
   if (where != FileDestination_e::SD && ((destination == FileDestination_e::ANY) || (destination == FileDestination_e::FLASH))) {
     f = ESPEASY_FS.open(patch_fname(fname), mode.c_str());
-    addLog(LOG_LEVEL_INFO, strformat(F("Accessing on Flash: %s (0x%x)"), patch_fname(fname).c_str(), f));
   }
   #if FEATURE_SD
 
   if ((!f || where == FileDestination_e::SD) && ((destination == FileDestination_e::ANY) || (destination == FileDestination_e::SD))) {
     f = SD.open(patch_fname(fname).c_str(), mode.c_str());
-    addLog(LOG_LEVEL_INFO, strformat(F("Accessing on SD-card: %s (0x%x)"), patch_fname(fname).c_str(), f));
   }
   #endif // if FEATURE_SD
 
