@@ -84,3 +84,5 @@ sdkconfig.defaults
 dependencies.lock
 
 .dummy/
+
+.cache/
