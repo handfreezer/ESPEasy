@@ -199,14 +199,14 @@ bool fileExists(const String& fname, FileDestination_e& destination) {
 
 fs::File tryOpenFile(const String& fname, const String& mode, FileDestination_e destination) {
   START_TIMER;
-  fs::File f{};
+  fs::File f;
 
   if (fname.isEmpty() || equals(fname, '/')) {
     return f;
   }
 
   FileDestination_e where = FileDestination_e::ANY;
-  bool exists = fileExists(fname, where);
+  const bool exists = fileExists(fname, where);
 
   if (!exists) {
     if (equals(mode, 'r')) {
