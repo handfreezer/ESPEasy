@@ -109,9 +109,12 @@ bool reserve_special(String& str, size_t size) {
 void free_string(String& str) {
   // This is a call specifically tailored to what is done in:
   //  void String::move(String &rhs)
-
+  #if defined(ESP32) || defined(CORE_POST_3_0_0)
   str.clear(); // Prevent any unneeded copying  
   String tmp(std::move(str));
+  #else
+  str = String();
+  #endif
 }
 
 /********************************************************************************************\
